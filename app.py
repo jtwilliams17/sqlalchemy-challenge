@@ -9,30 +9,23 @@ from sqlalchemy import create_engine, func
 
 from flask import Flask, jsonify
 
-#################################################
-# Database Setup
-#################################################
+
 engine = create_engine("sqlite:///hawaii.sqlite")
 
 # reflect an existing database into a new model
 Base = automap_base()
-# reflect the tables
+# reflect tables
 Base.prepare(engine, reflect=True)
 
-# Save reference to the table
+# Table references
 measurement = Base.classes.measurement
 station = Base.classes.station
 
 session = Session(engine)
-#################################################
-# Flask Setup
-#################################################
+
 app = Flask(__name__)
 
-
-#################################################
-# Flask Routes
-#################################################
+# Flask routes
 @app.route("/")
 def home():
     return (
