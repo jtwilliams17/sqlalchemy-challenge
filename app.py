@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, func
 from flask import Flask, jsonify
 
 
-engine = create_engine("sqlite:///hawaii.sqlite")
+engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
 # reflect an existing database into a new model
 Base = automap_base()
@@ -18,8 +18,8 @@ Base = automap_base()
 Base.prepare(engine, reflect=True)
 
 # Table references
-measurement = Base.classes.measurement
-station = Base.classes.station
+Measurement = Base.classes.measurement
+Station = Base.classes.station
 
 session = Session(engine)
 
@@ -40,11 +40,11 @@ def home():
 @app.route("/api/v1.0/precipitation")
 def precip():
     """Return the precipitation data for the last year"""
-    latest_date = session.query(measurement.date).order_by(measurement.date.desc()).first()[0]
+    latest_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()[0]
     query_date = dt.datetime.strptime(latest_date , '%Y-%m-%d') - dt.timedelta(days=365)
     
-    results = session.query(measurement.prcp, measurement.date).\
-                filter(measurement.date >= query_date).all()
+    results = session.query(Measurement.prcp, Measurement.date).\
+                filter(Measurement.date >= query_date).all()
 
 
     # Create a dictionary from the row data and append to a list of all_passengers
@@ -56,7 +56,7 @@ def precip():
 @app.route("/api/v1.0/stations")
 def stations():
     """Return a list of stations."""
-    results = session.query(station.station).all()
+    results = session.query(Station.station).all()
 
     stations = list(np.ravel(results))
     return jsonify(stations)
@@ -65,12 +65,12 @@ def stations():
 @app.route("/api/v1.0/tobs")
 def tobs():
     """Return the temperature observations for the last year."""
-    latest_date = session.query(measurement.date).order_by(measurement.date.desc()).first()[0]
+    latest_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()[0]
     last_year = dt.datetime.strptime(latest_date , '%Y-%m-%d') - dt.timedelta(days=365)
 
-    results = session.query(measurement.tobs).\
-        filter(measurement.station == 'USC00519281').\
-        filter(measurement.date >= last_year).all()
+    results = session.query(Measurement.tobs).\
+        filter(Measurement.station == 'USC00519281').\
+        filter(Measurement.date >= last_year).all()
 
     temps = list(np.ravel(results))
 
@@ -82,18 +82,18 @@ def tobs():
 def summary(start=None, end=None):
     """Return Temperature Min, Max, and Avg."""
     
-    sel = [func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)]
+    sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
 
     if not end:
         results = session.query(*sel).\
-            filter(measurement.date >= start).all()
+            filter(Measurement.date >= start).all()
 
         temps = list(np.ravel(results))
         return jsonify(temps)
 
     results = results = session.query(*sel).\
-            filter(measurement.date >= start).\
-            filter(measurement.date <= end).all()
+            filter(Measurement.date >= start).\
+            filter(Measurement.date <= end).all()
 
     temps = list(np.ravel(results))
     return jsonify(temps=temps)
