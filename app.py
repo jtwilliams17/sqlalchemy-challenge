@@ -38,17 +38,18 @@ def home():
      )
 
 @app.route("/api/v1.0/precipitation")
-def precip():
+def precipitation():
     """Return the precipitation data for the last year"""
     latest_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()[0]
     query_date = dt.datetime.strptime(latest_date , '%Y-%m-%d') - dt.timedelta(days=365)
-    
-    results = session.query(Measurement.prcp, Measurement.date).\
+    # query_date = dt.date(2017, 8, 23) - dt.timedelta(days=365)
+
+    precipitation = session.query(Measurement.date, Measurement.prcp).\
                 filter(Measurement.date >= query_date).all()
 
 
     # Create a dictionary from the row data and append to a list of all_passengers
-    precip = {date: prcp for date, prcp in results}
+    precip = {date: prcp for date, prcp in precipitation}
 
     return jsonify(precip)
 
@@ -59,7 +60,7 @@ def stations():
     results = session.query(Station.station).all()
 
     stations = list(np.ravel(results))
-    return jsonify(stations)
+    return jsonify(stations=stations)
 
 
 @app.route("/api/v1.0/tobs")
@@ -77,8 +78,8 @@ def tobs():
     return jsonify(temps=temps)
 
 
-@app.route("/api/v1.0/<start>")
-@app.route("/api/v1.0/<start>/<end>")
+@app.route("/api/v1.0/temp/<start>")
+@app.route("/api/v1.0/temp/<start>/<end>")
 def summary(start=None, end=None):
     """Return Temperature Min, Max, and Avg."""
     
@@ -91,9 +92,9 @@ def summary(start=None, end=None):
         temps = list(np.ravel(results))
         return jsonify(temps)
 
-    results = results = session.query(*sel).\
-            filter(Measurement.date >= start).\
-            filter(Measurement.date <= end).all()
+    results = session.query(*sel).\
+        filter(Measurement.date >= start).\
+        filter(Measurement.date <= end).all()
 
     temps = list(np.ravel(results))
     return jsonify(temps=temps)
